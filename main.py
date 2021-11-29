@@ -5,6 +5,7 @@ import datetime
 from user import User
 from dotenv import load_dotenv
 import os
+import sqlite3
 
 
 load_dotenv()
@@ -25,9 +26,9 @@ user_inquiry = dict()
 
 @bot.message_handler(commands='start')
 def start(message):
-    bot.send_message(message.from_user.id, f'{start_message}\n{commands}')
-    user = User(message.from_user.id)
-    print(message.from_user)
+    user = User(message.from_user.id, message.from_user.first_name, message.from_user.last_name)
+    print(user)
+    bot.send_message(message.from_user.id, f'Здравтсвуйте, {user.get_name}\n{start_message}\n{commands}')
 
 
 @bot.message_handler(commands='help')
@@ -43,14 +44,14 @@ def lowprice(message):
 
 @bot.message_handler(content_types='text')
 def hotel_request(message):
-    hotel_count = 0
-    bot.send_message(message.from_user.id, 'Введите кол-во отелей:')
-    while hotel_count == 0:
-        hotel_count = message.text
-        try:
-            hotel_count = int(message.text)
-        except ValueError as error:
-            logging.exception(f'Кол-во отелей должно быть числом {error}')
+    needed_city = message.text
+    bot.send_message(message.from_user.id, 'Введите кол-во отелей для поиска:')
+    bot.register_next_step_handler(message, date_picker)
+
+
+@bot.message_handler(content_types='text')
+def date_picker(message):
+    pass
 
 
 bot.polling(none_stop=True, interval=0)

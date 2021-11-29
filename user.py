@@ -1,17 +1,17 @@
 class User:
 
-    user_info = dict()
+    users = dict()
 
-    def __init__(self, id):
+    def __init__(self, id: int, name: str, surname: str):
         self.id = id
-        if self.id not in self.user_info.keys():
-            User.add_user(id, self)
+        self.name = name
+        self.surname = surname
+        User.add_user(id, self)
 
     @classmethod
     def add_user(cls, id, user):
-        cls.user_info[id] = user
-        print(type(user))
+        cls.users[id] = user
 
     @property
-    def get_user(self):
-        return self.id
+    def get_name(self):
+        return self.name
