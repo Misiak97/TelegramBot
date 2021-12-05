@@ -14,21 +14,19 @@ load_dotenv()
 token = os.getenv('TOKEN')
 bot = telebot.TeleBot(token)
 
-start_message = 'Привет! Я бот для поиска подходящих вам отелей!\nВот список доступных комманд:'
+start_message = 'Я бот для поиска подходящих вам отелей!\nВот список доступных комманд:'
 commands = '/help - Помощь\n' \
            '/lowprice - самые дешёвые отелей в городе\n' \
            '/highprice - самые дорогие отели в городе\n' \
            '/bestdeal - отели наиболее подходящие по цене и расположению от центра города\n' \
            '/history - история поиска'
 
-user_inquiry = dict()
-
 
 @bot.message_handler(commands='start')
 def start(message):
-    user = User(message.from_user.id, message.from_user.first_name, message.from_user.last_name)
-    print(user)
-    bot.send_message(message.from_user.id, f'Здравтсвуйте, {user.get_name}\n{start_message}\n{commands}')
+    print(message.from_user)
+    user = User.get_user(message.from_user.id, message.from_user.first_name)
+    bot.send_message(user.id, f'Здравтсвуйте, {user.name}!\n{start_message}\n{commands}')
 
 
 @bot.message_handler(commands='help')
@@ -44,7 +42,9 @@ def lowprice(message):
 
 @bot.message_handler(content_types='text')
 def hotel_request(message):
-    needed_city = message.text
+    user = User.get_user(message.from_user.id, message.from_user.first_name)
+    user.city = message.text
+    user.user_info(user.id)
     bot.send_message(message.from_user.id, 'Введите кол-во отелей для поиска:')
     bot.register_next_step_handler(message, date_picker)
 

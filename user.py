@@ -1,17 +1,24 @@
+import sqlite3
+
+
 class User:
 
     users = dict()
 
-    def __init__(self, id: int, name: str, surname: str):
+    def __init__(self, id, name):
         self.id = id
         self.name = name
-        self.surname = surname
-        User.add_user(id, self)
+        self.city = None
 
     @classmethod
-    def add_user(cls, id, user):
-        cls.users[id] = user
+    def get_user(cls, id, name):
+        if id in cls.users.keys():
+            return cls.users[id]
+        else:
+            return cls.add_user(id, name)
 
-    @property
-    def get_name(self):
-        return self.name
+    @classmethod
+    def add_user(cls, id, name):
+        cls.users[id] = User(id, name)
+        return cls.users[id]
+
