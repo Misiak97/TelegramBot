@@ -9,6 +9,12 @@ class User:
         self.id = id
         self.name = name
         self.city = None
+        self.hotels_atm = None
+        self.city_id = None
+        self.photos_answer = False
+        self.photos_atm = None
+        self.hotel_id = None
+        self.user_filter = None
 
     @classmethod
     def get_user(cls, id, name):
