@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+
 from telebot.types import InputMediaPhoto
 import json
 import requests
@@ -17,10 +20,10 @@ request_settings = {
 
 def get_photo(hotel_id, photo_atm):
     """
-    Функция парсер получающая список url фотографий для дальнейшей отправки их пользователю
-    :param hotel_id: Int. Айди отеля
-    :param photo_atm: Int. Кол-во фото для поиска
-    :return: List. Список url фото
+    Р¤СѓРЅРєС†РёСЏ РїР°СЂСЃРµСЂ РїРѕР»СѓС‡Р°СЋС‰Р°СЏ СЃРїРёСЃРѕРє url С„РѕС‚РѕРіСЂР°С„РёР№ РґР»СЏ РґР°Р»СЊРЅРµР№С€РµР№ РѕС‚РїСЂР°РІРєРё РёС… РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ
+    :param hotel_id: Int. РђР№РґРё РѕС‚РµР»СЏ
+    :param photo_atm: Int. РљРѕР»-РІРѕ С„РѕС‚Рѕ РґР»СЏ РїРѕРёСЃРєР°
+    :return: List. РЎРїРёСЃРѕРє url С„РѕС‚Рѕ
     """
 
     photos_url_list = list()

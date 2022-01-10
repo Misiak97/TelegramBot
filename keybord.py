@@ -1,11 +1,14 @@
+# -*- coding: utf-8 -*-
+
+
 from telebot import types
 
 
 def add_keyboard(cities_dict):
     """
-    Функция добавления клавиатуры
-    :param cities_dict: Dict. Словарь где ключ - Навзание страны и название города, значение - айди отеля
-    :return: ReplyKeyboardMarkup. Клавиатура для выбора нужного города
+    Р¤СѓРЅРєС†РёСЏ РґРѕР±Р°РІР»РµРЅРёСЏ РєР»Р°РІРёР°С‚СѓСЂС‹
+    :param cities_dict: Dict. РЎР»РѕРІР°СЂСЊ РіРґРµ РєР»СЋС‡ - РќР°РІР·Р°РЅРёРµ СЃС‚СЂР°РЅС‹ Рё РЅР°Р·РІР°РЅРёРµ РіРѕСЂРѕРґР°, Р·РЅР°С‡РµРЅРёРµ - Р°Р№РґРё РѕС‚РµР»СЏ
+    :return: ReplyKeyboardMarkup. РљР»Р°РІРёР°С‚СѓСЂР° РґР»СЏ РІС‹Р±РѕСЂР° РЅСѓР¶РЅРѕРіРѕ РіРѕСЂРѕРґР°
     """
 
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
