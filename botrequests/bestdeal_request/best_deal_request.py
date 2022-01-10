@@ -70,6 +70,6 @@ def bestdeal_req(city_id, hotels_atm, fst_date, sec_date, distance, min_price, m
                                        f'Расстояние до центра {distance_to_center} км.', hotel_id]
 
     if len(hotels_list) == 0:
-        return 'К сожалению по данному запросу найти отели не удалось'
+        return None
 
     return hotels_list

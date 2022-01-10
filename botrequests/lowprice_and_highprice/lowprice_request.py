@@ -58,4 +58,7 @@ def lowprice_req(city_id, hotels_atm, searching_filter, fst_date, sec_date):
         hotels_list[hotel_name] = [f'Адресс {country}, {city}, {address}\n',
                                    f'Цена за выбранный промежуток: {price}\n', hotel_id]
 
+    if len(hotels_list) == 0:
+        return None
+
     return hotels_list
