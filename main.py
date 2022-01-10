@@ -1,4 +1,6 @@
 import os
+import re
+
 import telebot
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from datetime import date
@@ -25,11 +27,14 @@ commands = '/help - Помощь\n' \
            '/bestdeal - отели наиболее подходящие по цене и расположению от центра города\n' \
            '/history - история поиска'
 
+normal_symbols = "^[a-zA-Zа-яА-ЯёЁ -]+$"
+
 
 @bot.message_handler(commands='start')
 def start(message):
     """
     Функция запуска чата с ботом, в которой выводится приветствие и создается или подтягивается экземляр класса
+    :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     bot.send_message(user.id, f'Здравтсвуйте, {user.name}!\n{start_message}\n{commands}')
@@ -39,7 +44,8 @@ def start(message):
 @bot.message_handler(commands='help')
 def helping_commands(message):
     """
-    Функция для отправки доступных команд пользователю
+    Функция для отправки пользователю всех доступных боту команд
+    :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     bot.send_message(user.id, f'Список команд:\n{commands}')
@@ -80,6 +86,12 @@ def highprice(message):
 
 @bot.message_handler(commands='bestdeal')
 def bestdeal(message):
+    """
+    Функция запускающая процесс поиска отелей по кретериям расстояния от центра и диапозону стоимости, которые
+    в дальнейшем будут введены пользователем, в которой атрибутам экземляра пользователя присваивается
+    введенная им команда для сортировки и отправкой сообщения с запросом нужного пользователю города
+    :param message: Сообщение отправленое пользователем
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     user.user_command = 'bestdeal'
     bot.send_message(user.id, 'Введите название города, в котором искать отель:')
@@ -89,20 +101,29 @@ def bestdeal(message):
 
 @bot.message_handler(content_types='text')
 def first_city_appropriator(message):
+    """
+    Функция получения от пользователя названия необходимого ему города с проверкой на ввод, и парсером списка всех
+    городов с данным названием
+    :param message: Сообщение от пользователя
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     city = message.text
+    pattern = re.compile(normal_symbols)
+    checking_city = pattern.search(city) is not None
     logger.info(f'Пользователь {user.username} ввел город {city}')
 
-    if city.isalpha() or (city.isalpha and '-' in city):
+    if checking_city:
 
         found_cities = city_req.id_city_selection(city)
-        if type(found_cities) == dict:
+
+        if len(found_cities) != 0:
             user.city = found_cities
             my_keyboard = add_keyboard(user.city)
             bot.send_message(user.id, 'Выберите нужный город', reply_markup=my_keyboard)
             bot.register_next_step_handler(message, city_id_identification)
         else:
-            bot.send_message(user.id, found_cities)
+            bot.send_message(user.id, 'К сожалению я не смог найти введенный вами город, проверьте правильность ввода и'
+                                      'введите нужную вам команду заново')
             logger.info(f'Город не найден')
     else:
         bot.send_message(user.id, 'Пожалуйста, проверьте правильность введенного вами'
@@ -113,6 +134,12 @@ def first_city_appropriator(message):
 
 @bot.message_handler(content_types='text')
 def city_id_identification(message):
+    """
+    Функция коллбэк для обработки нажатия пользователем кнопки выбора нужного ему города, которая присваивает айди этого
+    города атрибуту класса пользователя
+    :param message:
+    :return:
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
 
     try:
@@ -129,6 +156,11 @@ def city_id_identification(message):
 
 @bot.message_handler(content_types='text')
 def hotels_atm_changer(message):
+    """
+    Функция присваивания атрибуту класса пользователя кол-ва отелей для поиска с обработкой исключения если пользователь
+    ввел неверное значение
+    :param message: Сообщение от пользователя
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     try:
         user.hotels_atm = int(message.text)
@@ -141,6 +173,10 @@ def hotels_atm_changer(message):
 
 
 def arrival(message):
+    """
+    Функция для создания календаря в виде инлайн клавиатуры для выбоа пользователем даты заезда
+    :param message: Сообщение от пользователя
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
 
     calendar, step = DetailedTelegramCalendar(calendar_id=1, locale='ru').build()
@@ -152,6 +188,9 @@ def arrival(message):
 
 @bot.callback_query_handler(func=DetailedTelegramCalendar.func(calendar_id=1))
 def cal1(call):
+    """
+    Коллер для получения результата нажатий кнопок календаря даты заезда пользователем
+    """
     date_today = date.today()
     result, key, step = DetailedTelegramCalendar(calendar_id=1, locale='ru').process(call.data)
     if not result and key:
@@ -170,6 +209,10 @@ def cal1(call):
 
 
 def date_of_departure(message):
+    """
+    Функция для создания календаря в виде инлайн клавиатуры для выбоа пользователем даты выезда
+    :param message: Сообщение от пользователя
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
 
     calendar, step = DetailedTelegramCalendar(calendar_id=2, locale='ru').build()
@@ -181,6 +224,9 @@ def date_of_departure(message):
 
 @bot.callback_query_handler(func=DetailedTelegramCalendar.func(calendar_id=2))
 def cal2(call):
+    """
+     Коллер для получения результата нажатий кнопок календаря даты выезда пользователем
+     """
     result, key, step = DetailedTelegramCalendar(calendar_id=2, locale='ru').process(call.data)
     if not result and key:
         bot.edit_message_text(f'Выберите дату выезда', call.message.chat.id, call.message.message_id, reply_markup=key)
@@ -203,6 +249,12 @@ def cal2(call):
 
 @bot.message_handler(content_types='text')
 def hotel_price(message):
+    """
+    Функция запроса минимальной и максимальной допустимой, для пользователя, стоимости отелей, которые
+    в дальнейшем используются для поиска
+    :param message: Сообщение от полльзователя
+    :return:
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     bot.send_message(user.id, 'Введите мин/макс стоимость через пробел')
     logger.info(f'Пользователь {user.username} вводит мин/макс стоимость отелей за сутки')
@@ -211,6 +263,11 @@ def hotel_price(message):
 
 @bot.message_handler(content_types='text')
 def price_saver(message):
+    """
+    Функция присваивания экземпляру класса пользователя двух атрибутов с минимальной и максимальной стоюмостью отелей,
+    для дальнейшего поиска, с обработкой ошибки, если пользователь перепутал местами значения
+    :param message: Сообщение от пользователя
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     price = message.text.split()
     user.min_price = price[0]
@@ -227,6 +284,11 @@ def price_saver(message):
 
 @bot.message_handler(content_types='text')
 def distance_to_center(message):
+    """
+    Функция присваивания экземпляру класса пользователя атрибута введеной пользователем предпочтительной дистанции от
+    центра с обработкой исключения и выводом пользователю ошибки, если она была произведена
+    :param message: Сообщение от пользователя
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     try:
         distance = int(message.text)
@@ -241,6 +303,11 @@ def distance_to_center(message):
 
 @bot.message_handler(content_types='text')
 def loads_photo_choice(message):
+    """
+    Функция запроса необходимы ли пользователю фотографии отеля
+    :param message:
+    :return:
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     bot.send_message(user.id, 'Нужны ли фото?')
     logger.info(f'Пользователь {user.username} вводит отевет')
@@ -275,7 +342,7 @@ def number_of_photo(message):
     """
     Функция получающая в сообщение от пользователя кол-во фото для загрузки, с обработкой исключения в случае, если
     пользователем введен неподдерживаемое значение
-    :param message: String. Сообщение от пользователя
+    :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     try:
@@ -289,6 +356,11 @@ def number_of_photo(message):
 
 
 def hotels_atm_choicer(message):
+    """
+    Функция парсер, получающая список отелей в зависимости от комманды введенной пользователем со встроенным парсером
+    фотографий отеля (если они имеются), которая объеденияет каждый отель с фотографиями и отправляет их пользователю
+    :param message: Сообщение от пользователя
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     bot.send_message(user.id, 'Пожалуйста подождите, подбираю отели по вашему запросу!')
     hotels = None

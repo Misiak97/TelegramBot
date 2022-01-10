@@ -16,6 +16,12 @@ request_settings = {
 
 
 def get_photo(hotel_id, photo_atm):
+    """
+    Функция парсер получающая список url фотографий для дальнейшей отправки их пользователю
+    :param hotel_id: Int. Айди отеля
+    :param photo_atm: Int. Кол-во фото для поиска
+    :return: List. Список url фото
+    """
 
     photos_url_list = list()
     media_group = list()

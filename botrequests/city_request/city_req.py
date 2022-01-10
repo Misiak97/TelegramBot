@@ -15,7 +15,11 @@ request_settings = {
 
 
 def id_city_selection(city):
-
+    """
+    Парсер всех городов название которых совпадает с названием введенным пользователем
+    :param city: String. Название города
+    :return: Dict. Словарь с ключом - адрес, название города и значением - айди города
+    """
     cities = dict()
 
     url = "https://hotels4.p.rapidapi.com/locations/search"

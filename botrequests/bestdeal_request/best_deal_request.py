@@ -15,6 +15,18 @@ request_settings = {
 
 
 def bestdeal_req(city_id, hotels_atm, fst_date, sec_date, distance, min_price, max_price):
+    """
+    Функция парсер в которой происходит получение словаря отелей найденных по нужным кретериям и проверкой
+    этих критериев
+    :param city_id: Int. Айди города
+    :param hotels_atm: Int. Количество отелей для поиска
+    :param fst_date: String. Дата заезда
+    :param sec_date: String. Дата выезда
+    :param distance: Float. Максимальная дистанция до центра города
+    :param min_price: Int. Минимальная стоимость номера за ночь
+    :param max_price: Int. Максимальная стоиость номера за ночь
+    :return: Dict. Словарь где ключ - название отеля, значение - список из адреса, цены и расстояния до центра города
+    """
     hotels_list = dict()
 
     needed_distance = distance

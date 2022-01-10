@@ -15,6 +15,15 @@ request_settings = {
 
 
 def lowprice_req(city_id, hotels_atm, searching_filter, fst_date, sec_date):
+    """
+    Функция парсер для получения списка отелей найденных по введенным критериям
+    :param city_id: Int. Айди города
+    :param hotels_atm: Int. Кол-во отелей
+    :param searching_filter: String. Фильтр для поиска
+    :param fst_date: String. Дата заезда
+    :param sec_date: String. Дата выезда
+    :return: Dict. Словарь где ключ - название отеля, значение - адрес и стоимость за ночь
+    """
 
     hotels_list = dict()
 
