@@ -10,6 +10,7 @@ python-dotenv = "*"
 loguru = "*"
 sqlite3 = '*'
 python-telegram-bot-calendar = "*"
+peewee = "*"
 
 [dev-packages]
 

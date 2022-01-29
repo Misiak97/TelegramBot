@@ -1,33 +1,14 @@
-import os
-import re
+import datetime
 
-import telebot
-from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
-from datetime import date
-from telebot import types
-from loguru import logger
-from dotenv import load_dotenv
-from user import User
-from botrequests.city_request import city_req
-from botrequests.photos_request import photo_req
-from keybord import add_keyboard
-from botrequests.lowprice_and_highprice import lowprice_request
-from botrequests.bestdeal_request import best_deal_request
+from settings import *
 
 load_dotenv()
-logger.add('log_file.log', format='{time} {level} {message}', level="DEBUG")
+logger.add(logger_settings[0], format=logger_settings[1], level=logger_settings[2])
 
-token = os.getenv('TOKEN')
 bot = telebot.TeleBot(token)
 
-start_message = 'Я бот для поиска подходящих вам отелей!\nВот список доступных комманд:'
-commands = '/help - Помощь\n' \
-           '/lowprice - самые дешёвые отелей в городе\n' \
-           '/highprice - самые дорогие отели в городе\n' \
-           '/bestdeal - отели наиболее подходящие по цене и расположению от центра города\n' \
-           '/history - история поиска'
-
-normal_symbols = "^[a-zA-Zа-яА-ЯёЁ -]+$"
+History.LastSearch.create_table()
+History.AllSearchHistory.create_table()
 
 
 @bot.message_handler(commands='start')
@@ -37,6 +18,8 @@ def start(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+#    AllSearchHistory.create(name=user.name, user_id=user.id)
+    LastSearch.create(name=user.name, user_id=user.id)
     bot.send_message(user.id, f'Здравтсвуйте, {user.name}!\n{start_message}\n{commands}')
     logger.info(f'Пользователь {user.username} ввел команду "/start"')
 
@@ -48,6 +31,7 @@ def helping_commands(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    user.user_command = '/help'
     bot.send_message(user.id, f'Список команд:\n{commands}')
     logger.info(f'Пользователь {user.username} ввел команду "/help"')
 
@@ -63,9 +47,11 @@ def lowprice(message):
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     user.user_command = 'lowprice'
     user.user_filter = 'PRICE'
+    change_db_cmd_name(LastSearch, user)
+#    change_db_cmd_name(AllSearchHistory, user)
     bot.send_message(user.id, 'Введите название города, в котором искать отель:')
-    bot.register_next_step_handler(message, first_city_appropriator)
     logger.info(f'Пользователь {user.username} ввел команду "/lowprice"')
+    bot.register_next_step_handler(message, first_city_appropriator)
 
 
 @bot.message_handler(commands='highprice')
@@ -79,6 +65,8 @@ def highprice(message):
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     user.user_command = 'highprice'
     user.user_filter = 'PRICE_HIGHEST_FIRST'
+    change_db_cmd_name(LastSearch, user)
+#    change_db_cmd_name(AllSearchHistory, user)
     bot.send_message(user.id, 'Введите название города, в котором искать отель:')
     bot.register_next_step_handler(message, first_city_appropriator)
     logger.info(f'Пользователь {user.username} ввел команду "/highprice"')
@@ -107,6 +95,9 @@ def first_city_appropriator(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    if message.text in commands_list:
+        bot.send_message(user.id, 'Запрос приостановлен. Вот список доступных комманд \n{}'.format(commands))
+        breakpoint()
     city = message.text
     pattern = re.compile(normal_symbols)
     checking_city = pattern.search(city) is not None
@@ -164,6 +155,9 @@ def hotels_atm_changer(message):
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     try:
         user.hotels_atm = int(message.text)
+        if int(user.hotels_atm) < 0:
+            bot.send_message(user.id, 'Число не может быть отрицательным, попробуйте еще раз')
+            bot.register_next_step_handler(message, hotels_atm_changer)
         logger.info(f'Пользователем {user.username} было выбрано {user.hotels_atm} отелей')
         arrival(message)
     except ValueError as err:
@@ -270,13 +264,13 @@ def price_saver(message):
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     price = message.text.split()
-    user.min_price = price[0]
-    user.max_price = price[1]
+    user.min_price, user.max_price = price[0], price[1]
 
     if int(user.min_price) > int(user.max_price):
         user.min_price, user.max_price = user.max_price, user.min_price
         bot.send_message(user.id, 'Кажется вы перепутали местами мин/макс стоимость, '
-                                  'но ничего, я самостоятельно все исправил!')
+                                  'но ничего, я самостоятельно все исправил!'
+                         )
     bot.send_message(user.id, 'Введите оптимальное для вас расстояние в Км. от центра.')
     logger.info(f'Пользователь {user.username} вводит расстояние отеля от центра')
     bot.register_next_step_handler(message, distance_to_center)
