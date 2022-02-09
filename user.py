@@ -11,6 +11,8 @@ class User:
         self.city_id = None
         self.photos_answer = False
         self.photos_atm = None
+        self.hotels = None
+        self.command_time = None
         self.hotel_id = None
         self.user_filter = None
         self.user_command = None

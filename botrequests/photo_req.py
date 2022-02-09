@@ -4,8 +4,8 @@
 from telebot.types import InputMediaPhoto
 import json
 import requests
-import os
 from dotenv import load_dotenv
+import os
 
 
 load_dotenv()
@@ -45,8 +45,10 @@ def get_photo(hotel_id, photo_atm):
             size='z'
         )
         photos_url_list.append(photo_url)
-
-    for i_url in photos_url_list:
-        media_group.append(InputMediaPhoto(media=i_url))
+    try:
+        for i_url in photos_url_list:
+            media_group.append(InputMediaPhoto(media=i_url))
+    except TypeError:
+        return 'К сожалению отель не предоставил фото'
 
     return media_group

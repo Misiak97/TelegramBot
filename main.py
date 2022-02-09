@@ -1,5 +1,3 @@
-import datetime
-
 from settings import *
 
 load_dotenv()
@@ -7,8 +5,8 @@ logger.add(logger_settings[0], format=logger_settings[1], level=logger_settings[
 
 bot = telebot.TeleBot(token)
 
-History.LastSearch.create_table()
-History.AllSearchHistory.create_table()
+with db:
+    LastSearch.create_table()
 
 
 @bot.message_handler(commands='start')
@@ -18,8 +16,6 @@ def start(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
-#    AllSearchHistory.create(name=user.name, user_id=user.id)
-    LastSearch.create(name=user.name, user_id=user.id)
     bot.send_message(user.id, f'Здравтсвуйте, {user.name}!\n{start_message}\n{commands}')
     logger.info(f'Пользователь {user.username} ввел команду "/start"')
 
@@ -46,9 +42,9 @@ def lowprice(message):
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     user.user_command = 'lowprice'
+    user.command_time = datetime.now()
     user.user_filter = 'PRICE'
-    change_db_cmd_name(LastSearch, user)
-#    change_db_cmd_name(AllSearchHistory, user)
+    user.hotels = list()
     bot.send_message(user.id, 'Введите название города, в котором искать отель:')
     logger.info(f'Пользователь {user.username} ввел команду "/lowprice"')
     bot.register_next_step_handler(message, first_city_appropriator)
@@ -64,9 +60,9 @@ def highprice(message):
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     user.user_command = 'highprice'
+    user.command_time = datetime.now()
+    user.hotels = list()
     user.user_filter = 'PRICE_HIGHEST_FIRST'
-    change_db_cmd_name(LastSearch, user)
-#    change_db_cmd_name(AllSearchHistory, user)
     bot.send_message(user.id, 'Введите название города, в котором искать отель:')
     bot.register_next_step_handler(message, first_city_appropriator)
     logger.info(f'Пользователь {user.username} ввел команду "/highprice"')
@@ -82,9 +78,21 @@ def bestdeal(message):
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     user.user_command = 'bestdeal'
+    user.command_time = datetime.now()
+    user.hotels = list()
     bot.send_message(user.id, 'Введите название города, в котором искать отель:')
     bot.register_next_step_handler(message, first_city_appropriator)
     logger.info(f'Пользователь {user.username} ввел команду "/bestdeal"')
+
+
+@bot.message_handler(commands='history')
+def history(message):
+    user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    for i_info in LastSearch.select().where(LastSearch.user_id == user.id):
+        bot.send_message(user.id, f'Команда: {i_info.command}\n'
+                                  f'Время ввода команды: {i_info.command_time}\n'
+                                  f'Отели:\n{i_info.hotels}'
+                         )
 
 
 @bot.message_handler(content_types='text')
@@ -98,7 +106,7 @@ def first_city_appropriator(message):
     if message.text in commands_list:
         bot.send_message(user.id, 'Запрос приостановлен. Вот список доступных комманд \n{}'.format(commands))
         breakpoint()
-    city = message.text
+    city = message.text.title()
     pattern = re.compile(normal_symbols)
     checking_city = pattern.search(city) is not None
     logger.info(f'Пользователь {user.username} ввел город {city}')
@@ -195,7 +203,9 @@ def cal1(call):
                                   call.message.chat.id, call.message.message_id)
             arrival(call.message)
         else:
-            bot.edit_message_text(f'Введенная дата заезда {result}', call.message.chat.id, call.message.message_id)
+            bot.edit_message_text(f'Введенная дата заезда {result}',
+                                  call.message.chat.id, call.message.message_id
+                                  )
             user = User.get_user(call.message.chat.id, call.message.chat.first_name, call.message.chat.username)
             user.arrival_date = str(result)
 
@@ -228,7 +238,9 @@ def cal2(call):
         user = User.get_user(call.message.chat.id, call.message.chat.first_name, call.message.chat.username)
 
         if user.arrival_date < str(result):
-            bot.edit_message_text(f'Введенная дата выезда {result}', call.message.chat.id, call.message.message_id)
+            bot.edit_message_text(f'Введенная дата выезда {result}',
+                                  call.message.chat.id, call.message.message_id
+                                  )
             user.date_of_departure = str(result)
 
             if user.user_command in ['lowprice', 'highprice']:
@@ -264,16 +276,24 @@ def price_saver(message):
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     price = message.text.split()
-    user.min_price, user.max_price = price[0], price[1]
-
-    if int(user.min_price) > int(user.max_price):
-        user.min_price, user.max_price = user.max_price, user.min_price
-        bot.send_message(user.id, 'Кажется вы перепутали местами мин/макс стоимость, '
-                                  'но ничего, я самостоятельно все исправил!'
-                         )
-    bot.send_message(user.id, 'Введите оптимальное для вас расстояние в Км. от центра.')
-    logger.info(f'Пользователь {user.username} вводит расстояние отеля от центра')
-    bot.register_next_step_handler(message, distance_to_center)
+    try:
+        user.min_price, user.max_price = int(price[0]), int(price[1])
+        if int(user.min_price) > int(user.max_price):
+            user.min_price, user.max_price = user.max_price, user.min_price
+            bot.send_message(user.id, 'Кажется вы перепутали местами мин/макс стоимость, '
+                                      'но ничего, я самостоятельно все исправил!'
+                             )
+        bot.send_message(user.id, 'Введите оптимальное для вас расстояние в Км. от центра.')
+        logger.info(f'Пользователь {user.username} вводит расстояние отеля от центра')
+        bot.register_next_step_handler(message, distance_to_center)
+    except ValueError as err:
+        logger.error(f'Ошибка:{err}\nПользователь {user.name} ввел неверное значение цены')
+        bot.send_message(user.id, 'Ошибка ввода цены, проверьте правильность и попробуйте снова')
+        bot.register_next_step_handler(message, price_saver)
+    except IndexError as sec_err:
+        logger.error(f'Ошибка:{sec_err}\nПользователь не ввел второе число')
+        bot.send_message(user.id, 'Ошибка, кажется вы забыли ввести второе число.Попробуйте снова')
+        bot.register_next_step_handler(message, price_saver)
 
 
 @bot.message_handler(content_types='text')
@@ -324,7 +344,7 @@ def photos(message):
         bot.register_next_step_handler(message, number_of_photo)
     elif answer.title() == 'Нет':
         user.photos_answer = False
-        hotels_atm_changer(message)
+        hotels_atm_choicer(message)
     else:
         bot.send_message(user.id, 'Извините, я вас не понял, пожалуйста, введите "Да" или "Нет"!')
         logger.info(f'Пользователь {user.username} ввел неверный ответ на вопрос о загрузке фото')
@@ -361,29 +381,34 @@ def hotels_atm_choicer(message):
 
     try:
         if user.user_command in ['lowprice', 'highprice']:
-            hotels = lowprice_request.lowprice_req(user.city_id, user.hotels_atm, user.user_filter, user.arrival_date,
-                                                   user.date_of_departure).items()
+            hotels, user.hotels = lowprice_request.lowprice_req(user.city_id, user.hotels_atm, user.user_filter,
+                                                                user.arrival_date, user.date_of_departure
+                                                                )
 
         elif user.user_command == 'bestdeal':
-            hotels = best_deal_request.bestdeal_req(user.city_id, user.hotels_atm, user.arrival_date,
-                                                    user.date_of_departure, user.distance,
-                                                    user.min_price, user.max_price).items()
+            hotels, user.hotels = best_deal_request.bestdeal_req(user.city_id, user.hotels_atm,
+                                                                 user.arrival_date, user.date_of_departure,
+                                                                 user.distance, user.min_price, user.max_price)
 
         bot.send_message(user.id, f'По вашему запрусу было найдено {len(hotels)} отелей')
 
-        for i_hotel, i_hotel_info in hotels:
+        for i_hotel, i_hotel_info in hotels.items():
             hotel = f'{i_hotel}\n{"".join(i_hotel_info[:-1])}'
             bot.send_message(user.id, hotel)
             if user.photos_answer:
                 hotel_id = i_hotel_info[-1]
                 media = photo_req.get_photo(hotel_id, user.photos_atm)
-                if len(media) == 0:
-                    bot.send_message(user.id, 'К сожалению отель не предоставил фото')
+                if type(media) == str:
+                    bot.send_message(user.id, media)
                 else:
                     bot.send_media_group(user.id, media=media)
+
+        check_history(user.name, user.id, user.user_command, user.command_time, user.hotels)
+
     except AttributeError as err:
         logger.error(f'{err}: По запросу пользователя не было найдено отелей')
         bot.send_message(user.id, 'К сожалению по вашему запросу не удалось найти отели')
 
 
-bot.polling(none_stop=True, interval=0)
+if __name__ == '__main__':
+    bot.polling(none_stop=True, interval=0)

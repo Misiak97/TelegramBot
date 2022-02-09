@@ -8,11 +8,13 @@ from datetime import datetime, date
 from telebot import types
 from loguru import logger
 from dotenv import load_dotenv
-import History
+from models import *
 from History import *
 from user import User
 from keybord import add_keyboard
 from botrequests import best_deal_request, lowprice_request, city_req, photo_req
+import json
+import requests
 
 
 token = os.getenv('TOKEN')

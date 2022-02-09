@@ -27,7 +27,8 @@ def bestdeal_req(city_id, hotels_atm, fst_date, sec_date, distance, min_price, m
     :param max_price: Int. Максимальная стоиость номера за ночь
     :return: Dict. Словарь где ключ - название отеля, значение - список из адреса, цены и расстояния до центра города
     """
-    hotels_list = dict()
+    hotels_dict = dict()
+    hotels_list = list()
 
     needed_distance = distance
 
@@ -65,11 +66,14 @@ def bestdeal_req(city_id, hotels_atm, fst_date, sec_date, distance, min_price, m
                 address = 'К сожалению не удалось найти адрес данного отеля'
 
             price = i_elem.get("ratePlan").get("price").get("current")
-            hotels_list[hotel_name] = [f'Адресс {country}, {city}, {address}\n',
-                                       f'Цена за выбранный промежуток: {price}\n'
+            hotels_dict[hotel_name] = [f'Адресс {country}, {city}, {address}\n',
+                                       f'Цена за выбранный промежуток: {price}\n',
                                        f'Расстояние до центра {distance_to_center} км.', hotel_id]
 
-    if len(hotels_list) == 0:
+            hotels_list.append(f'{hotel_name} {city} {address}')
+    hotels_for_db = '\n\n'.join(hotels_list)
+
+    if len(hotels_dict) == 0:
         return None
 
-    return hotels_list
+    return hotels_dict, hotels_for_db

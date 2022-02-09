@@ -2,6 +2,7 @@
 
 
 import requests
+import user
 import json
 import os
 from dotenv import load_dotenv
@@ -28,7 +29,8 @@ def lowprice_req(city_id, hotels_atm, searching_filter, fst_date, sec_date):
     :return: Dict. Словарь где ключ - название отеля, значение - адрес и стоимость за ночь
     """
 
-    hotels_list = dict()
+    hotels_dict = dict()
+    hotels_list = list()
 
     url = "https://hotels4.p.rapidapi.com/properties/list"
 
@@ -55,10 +57,13 @@ def lowprice_req(city_id, hotels_atm, searching_filter, fst_date, sec_date):
             address = 'К сожалению не удалось найти адрес данного отеля'
 
         price = i_elem.get("ratePlan").get("price").get("current")
-        hotels_list[hotel_name] = [f'Адресс {country}, {city}, {address}\n',
+        hotels_dict[hotel_name] = [f'Адресс {country}, {city}, {address}\n',
                                    f'Цена за выбранный промежуток: {price}\n', hotel_id]
 
-    if len(hotels_list) == 0:
+        hotels_list.append(f'{hotel_name} {city} {address}')
+    hotels_for_db = '\n\n'.join(hotels_list)
+
+    if len(hotels_dict) == 0:
         return None
 
-    return hotels_list
+    return hotels_dict, hotels_for_db
