@@ -87,6 +87,10 @@ def bestdeal(message):
 
 @bot.message_handler(commands='history')
 def history(message):
+    """
+    Функция для отправки пользователю истории его поиска хронящуюся в базе данных
+    :param message: Сообщение от пользователя
+    """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     for i_info in LastSearch.select().where(LastSearch.user_id == user.id):
         bot.send_message(user.id, f'Команда: {i_info.command}\n'

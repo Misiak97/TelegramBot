@@ -4,7 +4,7 @@
 from telebot import types
 
 
-def add_keyboard(cities_dict):
+def add_keyboard(cities_dict: dict):
     """
     Функция добавления клавиатуры
     :param cities_dict: Dict. Словарь где ключ - Навзание страны и название города, значение - айди отеля

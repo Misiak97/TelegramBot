@@ -17,7 +17,7 @@ request_settings = {
         }
 
 
-def id_city_selection(city):
+def id_city_selection(city: str):
     """
     Парсер всех городов название которых совпадает с названием введенным пользователем
     :param city: String. Название города

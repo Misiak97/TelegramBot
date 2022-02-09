@@ -11,6 +11,8 @@ loguru = "*"
 sqlite3 = '*'
 python-telegram-bot-calendar = "*"
 peewee = "*"
+requests = '*'
+json = '*'
 
 [dev-packages]
 

@@ -14,7 +14,13 @@ request_settings = {
         }
 
 
-def bestdeal_req(city_id, hotels_atm, fst_date, sec_date, distance, min_price, max_price):
+def bestdeal_req(city_id: str,
+                 hotels_atm: int,
+                 fst_date: str,
+                 sec_date: str,
+                 distance: int,
+                 min_price: int,
+                 max_price: int):
     """
     Функция парсер в которой происходит получение словаря отелей найденных по нужным кретериям и проверкой
     этих критериев

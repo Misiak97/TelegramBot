@@ -18,7 +18,7 @@ request_settings = {
         }
 
 
-def lowprice_req(city_id, hotels_atm, searching_filter, fst_date, sec_date):
+def lowprice_req(city_id: int, hotels_atm: int, searching_filter: str, fst_date: str, sec_date: str):
     """
     Функция парсер для получения списка отелей найденных по введенным критериям
     :param city_id: Int. Айди города

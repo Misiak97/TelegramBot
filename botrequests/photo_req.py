@@ -18,7 +18,7 @@ request_settings = {
         }
 
 
-def get_photo(hotel_id, photo_atm):
+def get_photo(hotel_id: int, photo_atm: int):
     """
     Функция парсер получающая список url фотографий для дальнейшей отправки их пользователю
     :param hotel_id: Int. Айди отеля

@@ -3,6 +3,8 @@
 import os
 import re
 import telebot
+import json
+import requests
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from datetime import datetime, date
 from telebot import types
@@ -13,8 +15,6 @@ from History import *
 from user import User
 from keybord import add_keyboard
 from botrequests import best_deal_request, lowprice_request, city_req, photo_req
-import json
-import requests
 
 
 token = os.getenv('TOKEN')
