@@ -185,7 +185,8 @@ def arrival(message):
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
 
-    calendar, step = DetailedTelegramCalendar(calendar_id=1, locale='ru').build()
+    calendar, step = DetailedTelegramCalendar(calendar_id=1, locale='ru', min_date=date(2022, 1, 1),
+                                              max_date=date(2025, 12, 31)).build()
     logger.info(f'Пользователь {user.username} выбирает дату заселения')
     bot.send_message(user.id,
                      f'Выберете дату заезда {LSTEP[step]}',
@@ -223,7 +224,8 @@ def date_of_departure(message):
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
 
-    calendar, step = DetailedTelegramCalendar(calendar_id=2, locale='ru').build()
+    calendar, step = DetailedTelegramCalendar(calendar_id=2, locale='ru', min_date=date(2022, 1, 1),
+                                              max_date=date(2025, 12, 31)).build()
     logger.info(f'Пользователем {user.username} выбирает дату выезда')
     bot.send_message(user.id,
                      f'Выберете дату выезда {LSTEP[step]}',
