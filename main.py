@@ -399,7 +399,8 @@ def hotels_atm_choicer(message):
         bot.send_message(user.id, f'По вашему запрусу было найдено {len(hotels)} отелей')
 
         for i_hotel, i_hotel_info in hotels.items():
-            hotel = f'{i_hotel}\n{"".join(i_hotel_info[:-1])}'
+            hotel = f'{i_hotel}\n{"".join(i_hotel_info[:-1])}\nСсылка на отель: ' \
+                    f'https://ru.hotels.com/ho{i_hotel_info[-1]}'
             bot.send_message(user.id, hotel)
             if user.photos_answer:
                 hotel_id = i_hotel_info[-1]
