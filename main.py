@@ -13,7 +13,6 @@ from keybord import add_keyboard
 from botrequests import best_deal_request, lowprice_request, city_req, photo_req
 
 
-load_dotenv()
 logger.add(settings.logger_settings[0], format=settings.logger_settings[1], level=settings.logger_settings[2])
 
 bot = telebot.TeleBot(settings.token)
@@ -40,6 +39,7 @@ def helping_commands(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
     user.user_command = '/help'
     bot.send_message(user.id, f'Список команд:\n{settings.commands}')
     logger.info(f'Пользователь {user.username} ввел команду "/help"')
@@ -55,6 +55,7 @@ def lowprice(message):
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     user.user_command = 'lowprice'
+    check_in_commands_list(message=message, user_id=user.id)
     user.command_time = datetime.now()
     user.user_filter = 'PRICE'
     user.hotels = list()
@@ -90,6 +91,7 @@ def bestdeal(message):
     :param message: Сообщение отправленое пользователем
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
     user.user_command = 'bestdeal'
     user.command_time = datetime.now()
     user.hotels = list()
@@ -112,6 +114,12 @@ def history(message):
                          )
 
 
+def check_in_commands_list(message, user_id):
+    if message.text in settings.commands_list:
+        bot.send_message(user_id, 'Запрос приостановлен. Вот список доступных комманд \n{}'.format(settings.commands))
+        return breakpoint()
+
+
 @bot.message_handler(content_types='text')
 def first_city_appropriator(message):
     """
@@ -120,9 +128,7 @@ def first_city_appropriator(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
-    if message.text in settings.commands_list:
-        bot.send_message(user.id, 'Запрос приостановлен. Вот список доступных комманд \n{}'.format(settings.commands))
-        breakpoint()
+    check_in_commands_list(message=message, user_id=user.id)
     city = message.text.title()
     pattern = re.compile(settings.normal_symbols)
     checking_city = pattern.search(city) is not None
@@ -157,6 +163,7 @@ def city_id_identification(message):
     :return:
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
 
     try:
         user.city_id = user.city[message.text]
@@ -178,6 +185,7 @@ def hotels_atm_changer(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
     try:
         user.hotels_atm = int(message.text)
         if int(user.hotels_atm) < 0:
@@ -197,6 +205,7 @@ def arrival(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
 
     calendar, step = DetailedTelegramCalendar(calendar_id=1, locale='ru', min_date=date(2022, 1, 1),
                                               max_date=date(2025, 12, 31)).build()
@@ -236,6 +245,7 @@ def date_of_departure(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
 
     calendar, step = DetailedTelegramCalendar(calendar_id=2, locale='ru', min_date=date(2022, 1, 1),
                                               max_date=date(2025, 12, 31)).build()
@@ -281,6 +291,7 @@ def hotel_price(message):
     :return:
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
     bot.send_message(user.id, 'Введите мин/макс стоимость через пробел')
     logger.info(f'Пользователь {user.username} вводит мин/макс стоимость отелей за сутки')
     bot.register_next_step_handler(message, price_saver)
@@ -294,6 +305,7 @@ def price_saver(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
     price = message.text.split()
     try:
         user.min_price, user.max_price = int(price[0]), int(price[1])
@@ -323,6 +335,7 @@ def distance_to_center(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
     try:
         distance = int(message.text)
         user.distance = distance
@@ -342,6 +355,7 @@ def loads_photo_choice(message):
     :return:
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
     bot.send_message(user.id, 'Нужны ли фото?')
     logger.info(f'Пользователь {user.username} вводит отевет')
     bot.register_next_step_handler(message, photos)
@@ -355,6 +369,7 @@ def photos(message):
     :param message: Сообщение полученое от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
     answer = message.text
     if answer.title() == 'Да':
         user.photos_answer = True
@@ -378,6 +393,7 @@ def number_of_photo(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
+    check_in_commands_list(message=message, user_id=user.id)
     try:
         photos_counter = int(message.text)
         user.photos_atm = photos_counter

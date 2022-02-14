@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
+from dotenv import load_dotenv
 
 
+load_dotenv()
 token = os.getenv('TOKEN')
 
 logger_settings = ['log_file.log', '{time} {level} {message}', "DEBUG"]
