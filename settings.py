@@ -1,20 +1,5 @@
 # -*- coding: utf-8 -*-
-
 import os
-import re
-import telebot
-import json
-import requests
-from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
-from datetime import datetime, date
-from telebot import types
-from loguru import logger
-from dotenv import load_dotenv
-from models import *
-from History import *
-from user import User
-from keybord import add_keyboard
-from botrequests import best_deal_request, lowprice_request, city_req, photo_req
 
 
 token = os.getenv('TOKEN')

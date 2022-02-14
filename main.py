@@ -1,9 +1,22 @@
-from settings import *
+import re
+import telebot
+from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
+from datetime import datetime, date
+from telebot import types
+from loguru import logger
+from dotenv import load_dotenv
+from models import *
+from History import *
+from user import User
+import settings
+from keybord import add_keyboard
+from botrequests import best_deal_request, lowprice_request, city_req, photo_req
+
 
 load_dotenv()
-logger.add(logger_settings[0], format=logger_settings[1], level=logger_settings[2])
+logger.add(settings.logger_settings[0], format=settings.logger_settings[1], level=settings.logger_settings[2])
 
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(settings.token)
 
 with db:
     LastSearch.create_table()
@@ -16,7 +29,7 @@ def start(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
-    bot.send_message(user.id, f'Здравтсвуйте, {user.name}!\n{start_message}\n{commands}')
+    bot.send_message(user.id, f'Здравтсвуйте, {user.name}!\n{settings.start_message}\n{settings.commands}')
     logger.info(f'Пользователь {user.username} ввел команду "/start"')
 
 
@@ -28,7 +41,7 @@ def helping_commands(message):
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     user.user_command = '/help'
-    bot.send_message(user.id, f'Список команд:\n{commands}')
+    bot.send_message(user.id, f'Список команд:\n{settings.commands}')
     logger.info(f'Пользователь {user.username} ввел команду "/help"')
 
 
@@ -107,11 +120,11 @@ def first_city_appropriator(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
-    if message.text in commands_list:
-        bot.send_message(user.id, 'Запрос приостановлен. Вот список доступных комманд \n{}'.format(commands))
+    if message.text in settings.commands_list:
+        bot.send_message(user.id, 'Запрос приостановлен. Вот список доступных комманд \n{}'.format(settings.commands))
         breakpoint()
     city = message.text.title()
-    pattern = re.compile(normal_symbols)
+    pattern = re.compile(settings.normal_symbols)
     checking_city = pattern.search(city) is not None
     logger.info(f'Пользователь {user.username} ввел город {city}')
 
