@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-
-from telebot.types import InputMediaPhoto
+import os
 import json
 import requests
+
 from dotenv import load_dotenv
-import os
+from telebot.types import InputMediaPhoto
 
 
 load_dotenv()

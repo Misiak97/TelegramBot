@@ -1,15 +1,18 @@
 import re
 import telebot
+
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 from datetime import datetime, date
 from telebot import types
 from loguru import logger
-from models import *
-from History import *
-from user import User
+
 import settings
-from keybord import add_keyboard
+
 from botrequests import best_deal_request, lowprice_request, city_req, photo_req
+from history import check_history
+from keybord import add_keyboard
+from models import db, LastSearch
+from user import User
 
 
 logger.add(settings.logger_settings[0], format=settings.logger_settings[1], level=settings.logger_settings[2])
@@ -120,7 +123,6 @@ def check_in_commands_list(message, user_id):
         return True
     else:
         return False
-
 
 
 @bot.message_handler(content_types='text')
