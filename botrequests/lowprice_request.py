@@ -57,9 +57,11 @@ def lowprice_req(city_id: int, hotels_atm: int, searching_filter: str, fst_date:
 
         price = i_elem.get("ratePlan").get("price").get("current")
         hotels_dict[hotel_name] = [f'Адресс {country}, {city}, {address}\n',
-                                   f'Цена за выбранный промежуток: {price}\n', hotel_id]
+                                   f'Цена за выбранный промежуток: {price}\n'
+                                   f'Ссылка на отель: https://ru.hotels.com/ho{hotel_id}', hotel_id]
 
-        hotels_list.append(f'{hotel_name} {city} {address}')
+        hotels_list.append(f'{hotel_name} {city} {address}\nЦена за выбранный промежуток: {price}\n'
+                           f'Ссылка на отель: https://ru.hotels.com/ho{hotel_id}')
     hotels_for_db = '\n\n'.join(hotels_list)
 
     if len(hotels_dict) == 0:

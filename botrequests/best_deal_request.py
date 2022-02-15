@@ -77,7 +77,9 @@ def bestdeal_req(city_id: str,
                                        f'Цена за выбранный промежуток: {price}\n',
                                        f'Расстояние до центра {distance_to_center} км.', hotel_id]
 
-            hotels_list.append(f'{hotel_name} {city} {address}')
+            hotels_list.append(f'{hotel_name} {city} {address}\nЦена за выбранный промежуток: {price} '
+                               f'Расстояние до центра {distance_to_center} км.\n'
+                               f'Ссылка на отель: https://ru.hotels.com/ho{hotel_id}')
     hotels_for_db = '\n\n'.join(hotels_list)
 
     if len(hotels_dict) == 0:
