@@ -16,3 +16,13 @@ def add_keyboard(cities_dict: dict):
         keyboard.add(key)
 
     return keyboard
+
+
+def keyboard_for_get_photo_answer():
+
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    key_yes = types.KeyboardButton('Да')
+    key_no = types.KeyboardButton('Нет')
+    keyboard.add(key_yes, key_no)
+
+    return keyboard

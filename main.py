@@ -10,7 +10,7 @@ import settings
 
 from botrequests import best_deal_request, lowprice_request, city_req, photo_req
 from history import check_history
-from keybord import add_keyboard
+from keybord import add_keyboard, keyboard_for_get_photo_answer
 from models import db, LastSearch
 from user import User
 
@@ -151,7 +151,7 @@ def first_city_appropriator(message):
             bot.register_next_step_handler(message, city_id_identification)
         else:
             bot.send_message(user.id, 'К сожалению я не смог найти введенный вами город, проверьте правильность ввода и'
-                                      'введите нужную вам команду заново')
+                                      ' введите нужную вам команду заново')
             logger.info(f'Город не найден')
     else:
         bot.send_message(user.id, 'Пожалуйста, проверьте правильность введенного вами'
@@ -370,7 +370,8 @@ def loads_photo_choice(message):
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
     if check_in_commands_list(message=message, user_id=user.id):
         return
-    bot.send_message(user.id, 'Нужны ли фото?')
+    keyboard_for_answer = keyboard_for_get_photo_answer()
+    bot.send_message(user.id, 'Нужны ли фото?', reply_markup=keyboard_for_answer)
     logger.info(f'Пользователь {user.username} вводит отевет')
     bot.register_next_step_handler(message, photos)
 
@@ -386,16 +387,17 @@ def photos(message):
     if check_in_commands_list(message=message, user_id=user.id):
         return
     answer = message.text
-    if answer.title() == 'Да':
+    if answer == 'Да':
         user.photos_answer = True
-        bot.send_message(user.id, 'Сколько фото загрузить (Не более 10)?')
+        bot.send_message(user.id, 'Сколько фото загрузить (Не более 10)?', reply_markup=types.ReplyKeyboardRemove(),
+                         parse_mode='Markdown')
         logger.info(f'Пользователь {user.username} вводит кол-во фото для загрузки')
         bot.register_next_step_handler(message, number_of_photo)
-    elif answer.title() == 'Нет':
+    elif answer == 'Нет':
         user.photos_answer = False
         hotels_atm_choicer(message)
     else:
-        bot.send_message(user.id, 'Извините, я вас не понял, пожалуйста, введите "Да" или "Нет"!')
+        bot.send_message(user.id, 'Вам нужно выбрать ответ из приведенных, а не вводить с клавиатуры')
         logger.info(f'Пользователь {user.username} ввел неверный ответ на вопрос о загрузке фото')
         bot.register_next_step_handler(message, photos)
 
@@ -427,7 +429,10 @@ def hotels_atm_choicer(message):
     :param message: Сообщение от пользователя
     """
     user = User.get_user(message.chat.id, message.chat.first_name, message.chat.username)
-    bot.send_message(user.id, 'Пожалуйста подождите, подбираю отели по вашему запросу!')
+    bot.send_message(user.id, 'Пожалуйста подождите, подбираю отели по вашему запросу!',
+                     reply_markup=types.ReplyKeyboardRemove(),
+                     parse_mode='Markdown'
+                     )
     hotels = None
 
     try:
