@@ -142,7 +142,7 @@ def first_city_appropriator(message):
 
     if checking_city:
 
-        found_cities = city_req.id_city_selection(city)
+        found_cities = city_req.id_city_selection(city=city, user_id=user.id)
 
         if len(found_cities) != 0:
             user.city = found_cities

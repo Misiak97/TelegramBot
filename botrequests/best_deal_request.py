@@ -2,12 +2,18 @@ import requests
 import json
 import os
 
+import telebot
+
+import settings
+
 from dotenv import load_dotenv
 
 
 load_dotenv()
 
 req_key = os.getenv('REQUEST_KEY')
+
+bot = telebot.TeleBot(settings.token)
 
 request_settings = {
         'x-rapidapi-host': "hotels4.p.rapidapi.com",
@@ -21,7 +27,8 @@ def bestdeal_req(city_id: str,
                  sec_date: str,
                  distance: int,
                  min_price: int,
-                 max_price: int):
+                 max_price: int,
+                 user_id: int):
     """
     Функция парсер в которой происходит получение словаря отелей найденных по нужным кретериям и проверкой
     этих критериев
@@ -32,6 +39,7 @@ def bestdeal_req(city_id: str,
     :param distance: Float. Максимальная дистанция до центра города
     :param min_price: Int. Минимальная стоимость номера за ночь
     :param max_price: Int. Максимальная стоиость номера за ночь
+    :param user_id: Int. Айди пользователя
     :return: Dict. Словарь где ключ - название отеля, значение - список из адреса, цены и расстояния до центра города
     """
     hotels_dict = dict()
@@ -49,8 +57,12 @@ def bestdeal_req(city_id: str,
 
     headers = request_settings
 
-    response = requests.request("GET", url, headers=headers, params=querystring)
-    req = json.loads(response.text)
+    try:
+        response = requests.request("GET", url, headers=headers, params=querystring, timeout=30)
+        req = json.loads(response.text)
+    except TimeoutError:
+        bot.send_message(user_id, 'К сожалению сервис временно недоступен, попробуйте повторить попытку позже!')
+        return
 
     request_dict = req.get('data').get('body').get('searchResults').get('results')
     hotel_info = request_dict
